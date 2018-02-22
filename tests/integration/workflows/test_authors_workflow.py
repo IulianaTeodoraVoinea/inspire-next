@@ -33,7 +33,7 @@ from invenio_workflows import (
 from jsonschema import ValidationError
 
 
-def test_authors_workflow_stops_when_record_is_not_valid(workflow_app):
+def test_authors_workflow_stops_when_record_is_not_valid(isolated_app):
     invalid_record = {
         'name': {
             'preferred_name': 'John Smith',
@@ -58,7 +58,7 @@ def test_authors_workflow_stops_when_record_is_not_valid(workflow_app):
     assert 'required' in obj.extra_data['_error_msg']
 
 
-def test_authors_workflow_continues_when_record_is_valid(workflow_app, mocked_external_services):
+def test_authors_workflow_continues_when_record_is_valid(isolated_app, mocked_external_services_isolated):
     valid_record = {
         '_collections': ['Authors'],
         'name': {

@@ -175,6 +175,75 @@ def mocked_external_services(workflow_app):
 
 
 @pytest.fixture
+def mocked_external_services_isolated(isolated_app):
+    with requests_mock.Mocker() as requests_mocker:
+        requests_mocker.register_uri(
+            requests_mock.ANY,
+            re.compile('.*(indexer|localhost).*'),
+            real_http=True,
+        )
+        requests_mocker.register_uri(
+            'POST',
+            re.compile(
+                'https?://localhost:1234.*',
+            ),
+            text=u'[INFO]',
+            status_code=200,
+        )
+        requests_mocker.register_uri(
+            requests_mock.ANY,
+            re.compile(
+                '.*' +
+                isolated_app.config['WORKFLOWS_MATCH_REMOTE_SERVER_URL'] +
+                '.*'
+            ),
+            status_code=200,
+            json=[],
+        )
+        requests_mocker.register_uri(
+            requests_mock.ANY,
+            re.compile(
+                '.*' +
+                isolated_app.config['BEARD_API_URL'] +
+                '/text/phonetic_blocks.*'
+            ),
+            status_code=200,
+            json={'phonetic_blocks': {}},
+        )
+        requests_mocker.register_uri(
+            requests_mock.ANY,
+            re.compile(
+                '.*' +
+                isolated_app.config['CFG_BIBCATALOG_SYSTEM_RT_URL'] +
+                '/ticket/new.*'
+            ),
+            status_code=200,
+            text='RT/3.8.7 200 Ok\n\n# Ticket 1 created.\n# Ticket 1 updated.'
+        )
+        requests_mocker.register_uri(
+            requests_mock.ANY,
+            re.compile(
+                '.*' +
+                isolated_app.config['CFG_BIBCATALOG_SYSTEM_RT_URL'] +
+                '/ticket/.*/comment'
+            ),
+            status_code=200,
+        )
+        requests_mocker.register_uri(
+            requests_mock.ANY,
+            re.compile(
+                '.*' +
+                isolated_app.config['CFG_BIBCATALOG_SYSTEM_RT_URL'] +
+                '/ticket/.*/edit'
+            ),
+            status_code=200,
+            text='Irrelevant part 1 of message \nIrrelevant part 2 of message \n# Ticket 1 updated.'
+        )
+
+        yield
+
+
+@pytest.fixture
 def record_from_db(workflow_app):
     json = {
         '$schema': 'http://localhost:5000/schemas/records/hep.json',
